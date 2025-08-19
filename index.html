@@ -1,0 +1,161 @@
+
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quà 12A4 — Nhân ngày các bạn nữ</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Lora&family=Quicksand&family=Dancing+Script&family=Indie+Flower&family=Poppins&family=Merriweather&family=Josefin+Sans&family=Nunito&family=Bebas+Neue&family=Pacifico&family=Montserrat&family=Rubik&family=Roboto&family=Gloria+Hallelujah&family=Satisfy&family=Playfair+Display&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎁 Quà bất ngờ cho các bạn nữ 12A4</h1>
+    <p class="lead">Nhập tên và mật khẩu chung (hoặc gần đúng) để mở quà riêng nha.</p>
+  </header>
+
+  <main class="card">
+    <div class="form-row" id="formRow">
+      <input id="name" type="search" placeholder="Gõ tên (ví dụ: Nguyễn Ngọc Linh Giang)" autocomplete="off">
+      <div style="position:relative">
+        <input id="pass" type="password" placeholder="Mật khẩu chung">
+        <button id="togglePass" class="tiny">Hiện</button>
+      </div>
+      <button id="btn" class="btn">Mở quà</button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+    <div id="suggestions" class="suggestions" aria-live="polite"></div>
+
+    <section id="profile" class="profile hidden" aria-hidden="true">
+      <div id="giftArea" class="gift-area hidden">
+        <div id="giftBox" class="gift-box" title="Nhấn để mở quà">🎁</div>
+      </div>
+
+      <div class="profile-cover" id="profileCover">
+        <div class="profile-header">
+          <h2 id="pname"></h2>
+          <div class="meta">Lớp 12A4 — Trường THPT Lê Quý Đôn<br>Chủ nhiệm: Nguyễn Thanh Tâm</div>
+        </div>
+      </div>
+
+      <div class="profile-card" id="profileCard">
+        <div class="info-line" id="infoLine"></div>
+        <div class="poem-wrap"><h3>💌 Lời chúc</h3><div id="poem" class="poem"></div></div>
+        <div id="videoBox" class="videoBox"></div>
+        <div class="links" id="links"></div>
+        <button id="copyLink" class="mini">Copy link cá nhân</button>
+        <div class="note">Mật khẩu chung: <strong>Các bạn nam 12A4 đẹp trai</strong></div>
+        <a id="back" class="back">← Quay lại</a>
+      </div>
+
+      <div id="teddy" class="overlay left">🧸</div>
+      <div id="flower" class="overlay right">🌸</div>
+    </section>
+  </main>
+
+  <footer>Made with ❤️ — Lớp 12A4</footer>
+</div>
+
+<canvas id="confetti-canvas" class="confetti-canvas"></canvas>
+
+<script>
+const PASSWORD = "Các bạn nam 12A4 đẹp trai";
+const DEFAULT_VIDEO = "https://drive.google.com/file/d/1rlRFFYg2c7ciFvcZpgKEycx9zmuC8ymf/preview";
+let PROFILES = [];
+
+// load profiles
+fetch('profiles.json').then(r=>r.json()).then(data=>{ PROFILES = data; lookup = PROFILES.map(p=>({...p, norm: normalize(p.name)})); }).catch(e=>{ console.log('profiles load err', e); });
+
+function normalize(s){ if(!s) return ''; s = s.toLowerCase(); const map = {'à':'a','á':'a','ạ':'a','ả':'a','ã':'a','â':'a','ầ':'a','ấ':'a','ậ':'a','ẩ':'a','ẫ':'a','ă':'a','ằ':'a','ắ':'a','ặ':'a','ẳ':'a','ẵ':'a','è':'e','é':'e','ẹ':'e','ẻ':'e','ẽ':'e','ê':'e','ề':'e','ế':'e','ệ':'e','ể':'e','ễ':'e','ì':'i','í':'i','ị':'i','ỉ':'i','ĩ':'i','ò':'o','ó':'o','ọ':'o','ỏ':'o','õ':'o','ô':'o','ồ':'o','ố':'o','ộ':'o','ổ':'o','ỗ':'o','ơ':'o','ờ':'o','ớ':'o','ợ':'o','ở':'o','ỡ':'o','ù':'u','ú':'u','ụ':'u','ủ':'u','ũ':'u','ư':'u','ừ':'u','ứ':'u','ự':'u','ử':'u','ữ':'u','ỳ':'y','ý':'y','ỵ':'y','ỷ':'y','ỹ':'y','đ':'d'}; let out=''; for(const ch of s) out += map[ch] || ch; out = out.replace(/[^\w\s-]/g,'').replace(/\s+/g,' ').trim(); return out.replace(/\s+/g,' ').toLowerCase(); }
+function levenshtein(a,b){ if(a===b) return 0; const al=a.length, bl=b.length; if(al===0) return bl; if(bl===0) return al; const dp = Array(al+1).fill(null).map(()=>Array(bl+1).fill(0)); for(let i=0;i<=al;i++) dp[i][0]=i; for(let j=0;j<=bl;j++) dp[0][j]=j; for(let i=1;i<=al;i++){ for(let j=1;j<=bl;j++){ const cost = a[i-1]===b[j-1]?0:1; dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost); }} return dp[al][bl]; }
+function passwordAccepts(input){ const nInput = normalize(input); const nPass = normalize(PASSWORD); if(nInput === nPass) return true; const d = levenshtein(nInput, nPass); const ratio = d / Math.max(nInput.length, nPass.length); return (d <= 2) || (ratio <= 0.18); }
+
+// DOM refs
+const nameInput = document.getElementById('name');
+const passInput = document.getElementById('pass');
+const btn = document.getElementById('btn');
+const togglePass = document.getElementById('togglePass');
+const feedback = document.getElementById('feedback');
+const suggestions = document.getElementById('suggestions');
+const formRow = document.getElementById('formRow');
+const profileSection = document.getElementById('profile');
+const giftArea = document.getElementById('giftArea');
+const giftBox = document.getElementById('giftBox');
+const pname = document.getElementById('pname');
+const poemEl = document.getElementById('poem');
+const videoBox = document.getElementById('videoBox');
+const copyBtn = document.getElementById('copyLink');
+const back = document.getElementById('back');
+const profileCover = document.getElementById('profileCover');
+const infoLine = document.getElementById('infoLine');
+const linksDiv = document.getElementById('links');
+const teddy = document.getElementById('teddy');
+const flower = document.getElementById('flower');
+const confettiCanvas = document.getElementById('confetti-canvas');
+const ctx = confettiCanvas.getContext('2d');
+
+function resizeCanvas(){ confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+function renderSuggestions(q){ suggestions.innerHTML=''; if(!q) return; const nq = normalize(q); const matched = lookup.filter(p=> p.norm.includes(nq)).slice(0,8); if(matched.length===0){ suggestions.innerHTML = "<div class='sug'>Không tìm thấy. Thử gõ không dấu.</div>"; return; } matched.forEach(p=>{ const d = document.createElement('div'); d.className='sug'; d.textContent=p.name; d.onclick = ()=>{ nameInput.value = p.name; suggestions.innerHTML=''; }; suggestions.appendChild(d); }); }
+
+nameInput.addEventListener('input', e=> renderSuggestions(e.target.value));
+nameInput.addEventListener('keydown', e=> { if(e.key==='Enter') passInput.focus(); });
+passInput.addEventListener('keydown', e=> { if(e.key==='Enter') doOpen(); });
+btn.addEventListener('click', doOpen);
+togglePass.addEventListener('click', ()=>{ if(passInput.type==='password'){ passInput.type='text'; togglePass.textContent='Ẩn'; } else { passInput.type='password'; togglePass.textContent='Hiện'; } });
+
+function showIncorrectPassword(){ passInput.value=''; feedback.innerHTML = "<div class='err'>Ơ kìa các bạn Nam 12A4 rất đẹp trai luôn á 🥲</div>"; setTimeout(()=> feedback.innerHTML='', 5000); }
+
+function throwConfetti(){ const pieces=[]; const colors=['#ff6fa3','#ffd166','#a0e7e5','#bdb2ff','#ffd6e8','#ff9bb8']; for(let i=0;i<150;i++){ pieces.push({ x: Math.random()*confettiCanvas.width, y: -Math.random()*confettiCanvas.height, w:6+Math.random()*8, h:6+Math.random()*8, vx:(Math.random()-0.5)*4, vy:2+Math.random()*6, color: colors[Math.floor(Math.random()*colors.length)]}); } let t=0; function frame(){ t++; ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); for(const p of pieces){ p.x+=p.vx; p.y+=p.vy; p.vy+=0.05; ctx.fillStyle=p.color; ctx.fillRect(p.x,p.y,p.w,p.h);} if(t<220) requestAnimationFrame(frame); else ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); } requestAnimationFrame(frame); }
+
+function playExplosion(){ try{ const actx = new (window.AudioContext||window.webkitAudioContext)(); const o = actx.createOscillator(); const g = actx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(300, actx.currentTime); o.frequency.exponentialRampToValueAtTime(60, actx.currentTime+0.6); g.gain.setValueAtTime(0.4, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime+0.9); o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+0.9); }catch(e){} }
+
+// YouTube API for music (only created/played if profile.music provided)
+var ytApiReady=false, musicPlayer=null;
+function loadYouTubeAPI(){ if(window.YT && window.YT.Player){ ytApiReady=true; return; } var s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; document.head.appendChild(s); window.onYouTubeIframeAPIReady = function(){ ytApiReady=true; }; }
+loadYouTubeAPI();
+
+function createMusicFor(url){ if(!url) return; if(!ytApiReady){ setTimeout(()=> createMusicFor(url), 300); return; } try{ const id = (new URL(url)).searchParams.get('v') || url.split('/').pop(); if(musicPlayer){ try{ musicPlayer.stopVideo(); }catch(e){} var el=musicPlayer.getIframe(); if(el && el.parentNode) el.parentNode.removeChild(el); musicPlayer=null; } var div=document.createElement('div'); div.id='yt-music-player'; div.style.cssText='width:1px;height:1px;overflow:hidden;position:fixed;left:-1000px;top:-1000px;opacity:0;'; document.body.appendChild(div); musicPlayer = new YT.Player('yt-music-player',{height:'1',width:'1',videoId:id,playerVars:{autoplay:1,controls:0,rel:0,modestbranding:1,playsinline:1},events:{'onReady':e=>{ try{ e.target.setVolume(60); e.target.playVideo(); }catch(err){} }}}); }catch(e){ console.log('yt music error', e); } }
+
+function stopMusic(){ try{ if(musicPlayer && musicPlayer.stopVideo) musicPlayer.stopVideo(); }catch(e){} }
+
+function findUserByName(q){ const nq = normalize(q); return lookup.find(p => p.norm === nq) || lookup.find(p => p.norm.includes(nq)) || lookup.find(p => p.id === nq.replace(/\s+/g,'-')); }
+
+function doOpen(){ const nameQ = nameInput.value.trim(); const passQ = passInput.value.trim(); if(!nameQ){ alert('Nhập tên đi nhé.'); nameInput.focus(); return; } if(!passQ){ alert('Nhập mật khẩu chung.'); passInput.focus(); return; } if(!passwordAccepts(passQ)){ showIncorrectPassword(); passInput.focus(); return; } const user = findUserByName(nameQ); if(!user){ alert('Không tìm thấy tên. Thử gõ không dấu hoặc một phần tên.'); return; } profileSection.classList.remove('hidden'); giftArea.classList.remove('hidden'); formRow.style.display='none'; suggestions.innerHTML=''; feedback.innerHTML=''; giftBox.classList.remove('exploded','ready'); giftBox.classList.add('shaking'); giftBox.style.pointerEvents='none'; setTimeout(()=>{ giftBox.classList.remove('shaking'); giftBox.classList.add('ready'); giftBox.style.pointerEvents='auto'; }, 6*220 + 200); giftBox.onclick = ()=>{ if(!giftBox.classList.contains('ready')) return; playExplosion(); throwConfetti(); // play music if provided
+    if(user.music && user.music.trim()) createMusicFor(user.music.trim()); giftBox.classList.add('exploded'); setTimeout(()=>{ openProfile(user); }, 600); }; document.getElementById('profileCover').style.background = user.color || '#fff0f6'; document.getElementById('pname').textContent = user.name; document.getElementById('teddy').style.display = 'block'; document.getElementById('flower').style.display = 'block'; location.hash = user.id; }
+
+function openProfile(user){ // fonts
+  const nameFont = user.font ? user.font.replace('+',' ') : 'Poppins';
+  const poemFont = user.font ? user.font.replace('+',' ') : 'Poppins';
+  document.documentElement.style.setProperty('--name-font', "'" + nameFont + "', system-ui, sans-serif");
+  document.documentElement.style.setProperty('--poem-font', "'" + poemFont + "', system-ui, serif");
+  document.getElementById('profileCover').style.color = '#111';
+  document.getElementById('poem').innerHTML = "<pre>"+(user.poem||"")+"</pre>";
+  const vb = document.getElementById('videoBox'); vb.innerHTML='';
+  const videoUrl = (user.video && user.video.trim()) ? user.video : DEFAULT_VIDEO;
+  if(videoUrl){
+    if(videoUrl.includes('drive.google.com')){
+      const src = videoUrl.replace('/view','/preview');
+      const iframe = document.createElement('iframe');
+      iframe.src = src;
+      iframe.allow = "autoplay; encrypted-media; fullscreen; clipboard-write; picture-in-picture";
+      iframe.allowFullscreen = true;
+      iframe.style.width='100%'; iframe.style.height='420px'; iframe.style.border='0';
+      vb.appendChild(iframe);
+    } else {
+      const y = videoUrl.match(/(youtu\.be\/|v=|\/shorts\/)([A-Za-z0-9_-]{4,})/);
+      if(y){ let id = null; try { if(videoUrl.includes('v=')) id = (new URL(videoUrl)).searchParams.get('v'); else id = videoUrl.split('/').pop(); } catch(e){ id = videoUrl.split('/').pop(); } const src = id ? ("https://www.youtube.com/embed/"+id+"?autoplay=1") : videoUrl; const iframe = document.createElement('iframe'); iframe.src = src; iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"; iframe.allowFullscreen = true; vb.appendChild(iframe); } else { const v = document.createElement('video'); v.controls=true; v.autoplay = true; const s = document.createElement('source'); s.src = videoUrl; s.type='video/mp4'; v.appendChild(s); vb.appendChild(v); } } }
+  infoLine.innerHTML = "<strong>"+(user.name||"")+"</strong> — "+(user.nickname?user.nickname+" • ":"")+ (user.dob? "Sinh: "+user.dob+" • ":"") + "Lớp 12A4"; linksDiv.innerHTML = user.profile ? ('<a href="'+user.profile+'" target=\"_blank\" rel=\"noreferrer\">Trang cá nhân</a>') : ''; document.getElementById('profileCard').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+copyBtn.addEventListener('click', async ()=>{ const id = location.hash.replace('#','') || normalize(nameInput.value).replace(/\s+/g,'-'); const url = location.origin + location.pathname + "#" + id; try{ await navigator.clipboard.writeText(url); copyBtn.textContent = "Đã copy ✓"; setTimeout(()=> copyBtn.textContent = "Copy link cá nhân", 1500); }catch(e){ alert("Không copy được tự động, bạn hãy copy link thủ công từ thanh địa chỉ."); } });
+
+back.addEventListener('click', ()=>{ profileSection.classList.add('hidden'); profileSection.setAttribute('aria-hidden','true'); giftArea.classList.add('hidden'); formRow.style.display=''; location.hash=''; document.getElementById('teddy').style.display='none'; document.getElementById('flower').style.display='none'; document.documentElement.style.removeProperty('--name-font'); document.documentElement.style.removeProperty('--poem-font'); stopMusic(); });
+
+window.addEventListener('load', ()=>{ if(PROFILES.length>0){ lookup = PROFILES.map(p=>({...p, norm: normalize(p.name)})); } const h = location.hash.replace('#',''); if(!h) return; const u = lookup.find(x=> x.id===h || x.idNorm===h); if(u){ nameInput.value = u.name; renderSuggestions(u.name); } });
+</script>
+</body>
+</html>
