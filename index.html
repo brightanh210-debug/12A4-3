@@ -62,7 +62,7 @@
 <script>
 const PASSWORD = "Các bạn nam 12A4 đẹp trai";
 // default video (Drive preview link used for all profiles initially)
-const DEFAULT_VIDEO = "https://drive.google.com/file/d/1rlRFFYg2c7ciFvcZpgKEycx9zmuC8ymf/preview";
+const DEFAULT_VIDEO = "https://youtu.be/KvABsXcZxkU?si=XwSKMcv705ebVtlH";
 
 let PROFILES = [];
 fetch('profiles.json').then(r=>r.json()).then(data=>{ PROFILES = data; lookup = PROFILES.map(p=>({...p, norm: normalize(p.name)})); }).catch(e=>{ console.log('profiles load err', e); });
