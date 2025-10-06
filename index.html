@@ -133,7 +133,8 @@ function openProfile(user){ // fonts
   document.documentElement.style.setProperty('--name-font', "'" + nameFont + "', system-ui, sans-serif");
   document.documentElement.style.setProperty('--poem-font', "'" + poemFont + "', system-ui, serif");
   document.getElementById('profileCover').style.color = '#111';
-  document.getElementById('poem').innerHTML = "<pre>"+(user.poem||"")+"</pre>";
+  document.getElementById('poem').innerHTML =
+  "<pre>"+(user.poem || "").replace(/\\n/g, "\n")+"</pre>";
   const vb = document.getElementById('videoBox'); vb.innerHTML='';
   const videoUrl = (user.video && user.video.trim()) ? user.video : DEFAULT_VIDEO;
   if(videoUrl){
