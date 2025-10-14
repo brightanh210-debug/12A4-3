@@ -1,10 +1,9 @@
-
 <!doctype html>
 <html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Quà 12A4 — Nhân ngày các bạn nữ</title>
+<title>Quà 12A4 — Nhân ngày 20/10 các bạn nữ yêu dấu  </title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Lora&family=Quicksand&family=Dancing+Script&family=Indie+Flower&family=Poppins&family=Merriweather&family=Josefin+Sans&family=Nunito&family=Bebas+Neue&family=Pacifico&family=Montserrat&family=Rubik&family=Roboto&family=Gloria+Hallelujah&family=Satisfy&family=Playfair+Display&display=swap" rel="stylesheet">
 </head>
@@ -124,9 +123,72 @@ function stopMusic(){ try{ if(musicPlayer && musicPlayer.stopVideo) musicPlayer.
 
 function findUserByName(q){ const nq = normalize(q); return lookup.find(p => p.norm === nq) || lookup.find(p => p.norm.includes(nq)) || lookup.find(p => p.id === nq.replace(/\s+/g,'-')); }
 
-function doOpen(){ const nameQ = nameInput.value.trim(); const passQ = passInput.value.trim(); if(!nameQ){ alert('Nhập tên đi nhé.'); nameInput.focus(); return; } if(!passQ){ alert('Nhập mật khẩu chung.'); passInput.focus(); return; } if(!passwordAccepts(passQ)){ showIncorrectPassword(); passInput.focus(); return; } const user = findUserByName(nameQ); if(!user){ alert('Không tìm thấy tên. Thử gõ không dấu hoặc một phần tên.'); return; } profileSection.classList.remove('hidden'); giftArea.classList.remove('hidden'); formRow.style.display='none'; suggestions.innerHTML=''; feedback.innerHTML=''; giftBox.classList.remove('exploded','ready'); giftBox.classList.add('shaking'); giftBox.style.pointerEvents='none'; setTimeout(()=>{ giftBox.classList.remove('shaking'); giftBox.classList.add('ready'); giftBox.style.pointerEvents='auto'; }, 6*220 + 200); giftBox.onclick = ()=>{ if(!giftBox.classList.contains('ready')) return; playExplosion(); throwConfetti(); // play music if provided
-    if(user.music && user.music.trim()) createMusicFor(user.music.trim()); giftBox.classList.add('exploded'); setTimeout(()=>{ openProfile(user); }, 600); }; document.getElementById('profileCover').style.background = user.color || '#fff0f6'; document.getElementById('pname').textContent = user.name; document.getElementById('teddy').style.display = 'block'; document.getElementById('flower').style.display = 'block'; location.hash = user.id; }
+function doOpen(){
+  const nameQ = nameInput.value.trim();
+  const passQ = passInput.value.trim();
+  if(!nameQ){
+    alert('Nhập tên đi nhé.');
+    nameInput.focus();
+    return;
+  }
+  if(!passQ){
+    alert('Nhập mật khẩu chung.');
+    passInput.focus();
+    return;
+  }
+  if(!passwordAccepts(passQ)){
+    showIncorrectPassword();
+    passInput.focus();
+    return;
+  }
 
+  const user = findUserByName(nameQ);
+  if(!user){
+    alert('Không tìm thấy tên. Thử gõ không dấu hoặc một phần tên.');
+    return;
+  }
+
+  profileSection.classList.remove('hidden');
+  giftArea.classList.remove('hidden');
+  formRow.style.display='none';
+  suggestions.innerHTML='';
+  feedback.innerHTML='';
+  giftBox.classList.remove('exploded','ready');
+  giftBox.classList.add('shaking');
+  giftBox.style.pointerEvents='none';
+  
+  setTimeout(()=>{
+    giftBox.classList.remove('shaking');
+    giftBox.classList.add('ready');
+    giftBox.style.pointerEvents='auto';
+  }, 6*220 + 200);
+
+  // 💥 Khi click mở quà
+  giftBox.onclick = ()=>{ 
+    if(!giftBox.classList.contains('ready')) return; 
+    playExplosion(); 
+    throwConfetti(); 
+
+    // 🎵 Phát nhạc Dropbox hoặc YouTube khi mở quà
+    if (user.music && user.music.trim()) {
+      const url = user.music.trim();
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        createMusicFor(url); // phát YouTube
+      } else {
+        playMusic(url); // phát Dropbox/mp3
+      }
+    }
+
+    giftBox.classList.add('exploded'); 
+    setTimeout(()=>{ openProfile(user); }, 600); 
+  };
+
+  document.getElementById('profileCover').style.background = user.color || '#fff0f6';
+  document.getElementById('pname').textContent = user.name;
+  document.getElementById('teddy').style.display = 'block';
+  document.getElementById('flower').style.display = 'block';
+  location.hash = user.id;
+}
 function openProfile(user){ // fonts
   const nameFont = user.font ? user.font.replace('+',' ') : 'Poppins';
   const poemFont = user.font ? user.font.replace('+',' ') : 'Poppins';
@@ -158,5 +220,6 @@ back.addEventListener('click', ()=>{ profileSection.classList.add('hidden'); pro
 
 window.addEventListener('load', ()=>{ if(PROFILES.length>0){ lookup = PROFILES.map(p=>({...p, norm: normalize(p.name)})); } const h = location.hash.replace('#',''); if(!h) return; const u = lookup.find(x=> x.id===h || x.idNorm===h); if(u){ nameInput.value = u.name; renderSuggestions(u.name); } });
 </script>
+<script src="music.js"></script>
 </body>
 </html>
